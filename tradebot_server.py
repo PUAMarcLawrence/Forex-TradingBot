@@ -38,6 +38,7 @@ def create_order(ticker,qty,order_type,price,sl,tp):
     order = mt5.order_send(request)
     print(order)
     return order
+
 # close Order
 def close_order(ticker,qty,order_type,price):
     request={
@@ -69,11 +70,8 @@ def login():
     if request.method == "POST":
         session.permanent = True
         user = request.form["nm"]
-        print(user)
         password = request.form["pass"]
-        print(password)
         server = request.form["server"]
-        print(server)
         if not print_status["loggedIn"]:
                 # establish MetaTrader 5 connection to a specified trading account
                 if not mt5.initialize(): # (login=212636007,password='9X@buA3G',server='OctaFX-Demo'):
@@ -105,5 +103,4 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == "__main__":
-    # serve(app, host ="0.0.0.0", port=8000)
-    app.run(host ="0.0.0.0", port=8000,debug=True)
+    app.run(host ="0.0.0.0", port=8000,debug=True) # serve(app, host ="0.0.0.0", port=8000)
