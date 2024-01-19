@@ -22,8 +22,8 @@ print_status = {
 
 account = {
     "login" : 0,
-    "password" : "",
-    "server" : ""
+    "password" : " ",
+    "server" : " "
 }
 # create Order
 def create_order(ticker,qty,order_type,price,sl,tp):
@@ -74,13 +74,13 @@ def home():
 def login():
     if request.method == "POST":
         session.permanent = True
-        account["login"] = int(request.form["nm"])
+        if request.form["ID"] != "":
+            account["login"] = int(request.form["ID"])
         account["password"] = request.form["pass"]
         account["server"] = request.form["server"]
-
         # establish connection to the MetaTrader 5 terminal
         if not mt5.initialize(login=account["login"],password=account["password"],server=account["server"]): # login=212636007,password='9X@buA3G',server='OctaFX-Demo'
-            print("failed to connect at account #{}, error code: {}".format(user, mt5.last_error()))
+            print("failed to connect at account #{}, error code: {}".format(account["login"], mt5.last_error()))
             return render_template("login.html",Failed="Login Failed")
         else:
             print(mt5.version())
