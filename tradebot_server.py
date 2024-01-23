@@ -15,6 +15,7 @@ trade = {
     "stop_loss_ticks" : 50,
     "take_profit_ticks" : 150
 }
+
 print_status = {
     "printed_once" : False,
     "loggedIn" : False
@@ -63,7 +64,7 @@ def close_order(ticker,qty,order_type,price):
     return order
 
 app = Flask(__name__)
-app.secret_key = "hello"
+app.secret_key = "Light"
 app.permanent_session_lifetime = timedelta(minutes=5)
 
 @app.route('/')
