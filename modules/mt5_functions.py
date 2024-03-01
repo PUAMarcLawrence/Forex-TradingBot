@@ -16,15 +16,14 @@ TIMEFRAME_DICT = {
 }
 
 def get_symbol_names():
-    # connect to MetaTrader5 platform
     mt5.initialize()
-
     # get symbols
     symbols = mt5.symbols_get()
     symbols_df = pd.DataFrame(symbols, columns=symbols[0]._asdict().keys())
-
     symbol_names = symbols_df['name'].tolist()
     return symbol_names
+
+
 
 # create Order
 def create_order(ticker,qty,order_type,price,sl,tp):
