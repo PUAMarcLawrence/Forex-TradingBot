@@ -388,27 +388,12 @@ body{
   text-decoration-color: #55575D;
 }
 
-.table-news{
-  border: 1px solid #55575D;
-  border-collapse: collapse;
-  width: 100%;
-  max-height: 500px;
-}
-
-.table-news td{
-  border: 1px solid #55575D;
-}
-
-.table-news tr:hover{
-  background-color: #292B33;
-  cursor: pointer;
-}
-
 .table-orders{
   width: 100%;
   background-color: #22252b;
-  color: #686868;
+  color: #ffffff;
   overflow-x: auto;
+  font-size: small
 }
 
 .table-orders-empty{
@@ -436,18 +421,6 @@ th{
   text-align:center;
 }
 
-.div-news{
-  padding: 24px;
-}
-
-
-.p-news{
-  display:inline;
-  font-size:12px;
-  padding: 3px;
-  margin: 0;
-}
-
 .float-right{
   float:right;
 }
@@ -461,7 +434,7 @@ th{
 }
 
 .div-right-panel{
-  padding: 80px 64px 64px 32px;
+  padding: 40px 64px 64px 32px;
 }
 
 .div-bid-ask{
@@ -676,11 +649,18 @@ div.Select-value, .Select-control,div.period, .Select-input{
 }
 
 .button-buy-sell-chart{
-  width: 48%;
+  width: 50%;
   text-align: center;
   display: inline-block;
 }
 
+.button-login{
+  width: 100%;
+  font-size: small;
+  display: inline-block;
+  text-align: center;
+  align-content: center;
+}
 
 .button-buy-sell-chart-right{
   width: 48%;
@@ -836,11 +816,6 @@ summary::-webkit-details-marker {
 
   .div-right-panel{
     padding: 32px;
-  }
-
-  .div-news{
-    padding: 24px 64px;
-    padding-bottom: 64px;
   }
 
   .div-currency-toggles{
