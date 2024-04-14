@@ -1,7 +1,6 @@
 import MetaTrader5 as mt5
 import pandas as pd
 
-
 TIMEFRAMES = ['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1', 'MN1']
 TIMEFRAME_DICT = {
     'M1': mt5.TIMEFRAME_M1,
@@ -15,6 +14,9 @@ TIMEFRAME_DICT = {
     'MN1': mt5.TIMEFRAME_MN1,
 }
 
+def positions(currency_pair,period):
+    return pd.DataFrame(mt5.copy_rates_from_pos(currency_pair, TIMEFRAME_DICT[period], 0, 50))
+    
 def get_symbol_names():
     mt5.initialize()
     # get symbols
