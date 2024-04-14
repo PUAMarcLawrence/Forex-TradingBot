@@ -1,5 +1,5 @@
 .venv
 __pycache__
 DashApp.py
-trading_bot.py
+trading_bot_Sample.py
 forextrading_bot.py
