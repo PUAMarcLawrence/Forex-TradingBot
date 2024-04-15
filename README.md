@@ -195,9 +195,9 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Marc Lawrence C. Pua - [@twitter_handle](https://x.com/pua_marc?t=lROs0h6ERZ1AM1cjNYN66g&s=09) - marcpua8567@gmail.com
 
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [https://github.com/github_username/repo_name](https://github.com/PUAMarcLawrence/Forex-TradingBot)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
