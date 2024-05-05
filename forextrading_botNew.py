@@ -47,8 +47,6 @@ def run_script(script_name):
 app = Dash(__name__,meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=0.5"}], external_stylesheets=["assets\style.css"]) # external_stylesheets=[dbc.themes.SPACELAB,dbc.icons.BOOTSTRAP])
 app.title = "FOREX Trader Bot"
 
-# Currency pairs
-currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 # Switches Account
 def login_account():
     return html.Div(
@@ -247,7 +245,6 @@ balance=mt5.account_info().balance, equity=mt5.account_info().equity, margin=mt5
     ]
 
 ####### STUDIES TRACES ######
-
 # Moving average
 def moving_average_trace(df, fig):
     df2 = df.rolling(window=5).mean()
@@ -257,7 +254,6 @@ def moving_average_trace(df, fig):
     fig.append_trace(trace, 1, 1)  # plot in first row
     return fig
 
-
 # Exponential moving average
 def e_moving_average_trace(df, fig):
     df2 = df.rolling(window=20).mean()
@@ -266,7 +262,6 @@ def e_moving_average_trace(df, fig):
     )
     fig.append_trace(trace, 1, 1)  # plot in first row
     return fig
-
 
 # Bollinger Bands
 def bollinger_trace(df, fig, window_size=10, num_of_std=5):
@@ -293,7 +288,6 @@ def bollinger_trace(df, fig, window_size=10, num_of_std=5):
     fig.append_trace(trace3, 1, 1)  # plot in first row
     return fig
 
-
 # Accumulation Distribution
 def accumulation_trace(df):
     df["volume"] = ((df["close"] - df["low"]) - (df["high"] - df["close"])) / (
@@ -303,7 +297,6 @@ def accumulation_trace(df):
         x=df.index, y=df["volume"], mode="lines", showlegend=False, name="Accumulation"
     )
     return trace
-
 
 # Commodity Channel Index
 def cci_trace(df, ndays=5):
@@ -316,7 +309,6 @@ def cci_trace(df, ndays=5):
     trace = go.Scatter(x=df.index, y=CCI, mode="lines", showlegend=False, name="CCI")
     return trace
 
-
 # Price Rate of Change
 def roc_trace(df, ndays=5):
     N = df["close"].diff(ndays)
@@ -325,20 +317,17 @@ def roc_trace(df, ndays=5):
     trace = go.Scatter(x=df.index, y=ROC, mode="lines", showlegend=False, name="ROC")
     return trace
 
-
 # Stochastic oscillator %K
 def stoc_trace(df):
     SOk = pd.Series((df["close"] - df["low"]) / (df["high"] - df["low"]), name="SO%k")
     trace = go.Scatter(x=df.index, y=SOk, mode="lines", showlegend=False, name="SO%k")
     return trace
 
-
 # Momentum
 def mom_trace(df, n=5):
     M = pd.Series(df["close"].diff(n), name="Momentum_" + str(n))
     trace = go.Scatter(x=df.index, y=M, mode="lines", showlegend=False, name="MOM")
     return trace
-
 
 # Pivot points
 def pp_trace(df, fig):
@@ -364,7 +353,6 @@ def pp_trace(df, fig):
     fig.append_trace(trace5, 1, 1)
     fig.append_trace(trace6, 1, 1)
     return fig
-
 
 # MAIN CHART TRACES (STYLE tab)
 def line_trace(df):
@@ -681,7 +669,6 @@ def load_orders():
             }
             orders.append(order)
     return orders
-
 
 # Dash App Layout
 app.layout = html.Div(
