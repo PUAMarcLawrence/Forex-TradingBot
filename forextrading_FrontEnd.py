@@ -5,13 +5,14 @@ import plotly.graph_objects as go
 import MetaTrader5 as mt5
 import threading
 import subprocess
-from dash import Dash, html, dcc, Output, Input, State
+from dash import Dash,html,dcc,Output,Input,State
 from datetime import datetime, timedelta
 from plotly import subplots
 from waitress import serve
 from modules.sqlite_functions import database_initialize, login_retrieve
 from modules.mt5_functions import initializeMT5,newUser
 
+#Bot Start UP
 database_initialize()
 while login_retrieve() == None:
     print("No Account in Database:")
@@ -39,9 +40,12 @@ if login_retrieve() != None:
 
 from modules.mt5_functions import TIMEFRAME_DICT, close_order
 
+# Currency pairs
+currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
 def run_script(script_name):
     subprocess.run(["python", script_name])
+    return
 
 # initialize app
 app = Dash(__name__,meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=0.5"}], external_stylesheets=["assets\style.css"]) # external_stylesheets=[dbc.themes.SPACELAB,dbc.icons.BOOTSTRAP])
@@ -419,12 +423,12 @@ def candlestick_trace(df):
 # Returns graph figure
 def get_fig(currency_pair, ask, bid, type_trace, studies, period):
     # Get OHLC data
-    if period == "H1":
+    if period == "M15":
+        bars = 115
+    elif period == "H1":
         bars = 72
-    elif period == "H4":
-        bars = 48
     else:
-        bars = 20
+        bars = 48
     df = pd.DataFrame(mt5.copy_rates_from_pos(currency_pair, TIMEFRAME_DICT[period], 0, bars))
     df['time'] = pd.to_datetime(df['time'], unit='s')
     df.set_index('time', inplace = True)
@@ -484,7 +488,6 @@ def get_fig(currency_pair, ask, bid, type_trace, studies, period):
     fig.update_xaxes(rangebreaks=[dict(bounds=['sat', 'mon'])])
 
     return fig
-
 
 # returns chart div
 def chart_div(pair):
@@ -595,11 +598,11 @@ def chart_div(pair):
                                         className="dropdown-period",
                                         id=pair + "dropdown_period",
                                         options=[
+                                            {"label": "M15", "value": "M15"},
                                             {"label": "H1", "value": "H1"},
                                             {"label": "H4", "value": "H4"},
-                                            {"label": "D1", "value": "D1"},
                                         ],
-                                        value="H1",
+                                        value="M15",
                                         clearable=False,
                                     )
                                 ],
@@ -1033,6 +1036,7 @@ app.callback(
 def close_orders(ticket):
     if ticket != None:
         close_order(ticket)
+    return
 
 # Callback to update Orders Table
 @app.callback(
@@ -1129,5 +1133,6 @@ def update_time(n):
 if __name__ == '__main__':
     tradingBotScript_thread = threading.Thread(target=run_script, args=("ForexTradingBot_Backend.py",))
     tradingBotScript_thread.start()
-    app.run(host="0.0.0.0",port=8000,debug=True)
-    # tradingBotScript_thread.join()
+    # app.run(host="0.0.0.0",port=8000,debug=True)
+    serve(app, host='127.0.0.1', port=8000, url_prefix='/my-app')
+    tradingBotScript_thread.join()

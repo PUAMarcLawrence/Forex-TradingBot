@@ -29,6 +29,19 @@ def newUser(userData,userPass,serverData):
     update_account(userData,userPass,serverData)
     return True
 
+def get_positions(symbol,timeframe,bars):
+    initializeMT5()
+    rates=mt5.copy_rates_from_pos(symbol,TIMEFRAME_DICT[timeframe],0,bars)
+    mt5.shutdown()
+    return rates
+
+def checkActivePos(ticker):
+    initializeMT5()
+    positions = mt5.positions_get(symbol=ticker)
+    df = pd.DataFrame(positions)
+    if positions != ():
+        return df.iloc[0,0]
+    return None
 
 # get symbol names
 # def get_symbol_names():
@@ -39,15 +52,13 @@ def newUser(userData,userPass,serverData):
 #     return symbol_names
 
 # create Order
-def create_order(symbol,qty,order_type,price,comment): # ,sl,tp
+def create_order(symbol,qty,order_type,price,comment):
     request={
         "action": mt5.TRADE_ACTION_DEAL,
         "symbol": symbol,
         "volume": qty,
         "type": order_type,
         "price": price,
-        # 'sl': sl,
-        # 'tp': tp,
         'comment':comment,
         'type_time': mt5.ORDER_TIME_GTC,
         'type_filling': mt5.ORDER_FILLING_FOK,
@@ -55,28 +66,17 @@ def create_order(symbol,qty,order_type,price,comment): # ,sl,tp
     # send a trading request
     order = mt5.order_send(request)
     print(order)
-    return order
-
-def buy_order(symbol,volume):
-    point = mt5.symbol_info(symbol).point
-    price = mt5.symbol_info_tick(symbol).ask
-    request={
-        "action": mt5.TRADE_ACTION_DEAL,
-        "symbol": symbol,
-        "volume": volume,
-        "type": mt5.ORDER_TYPE_BUY,
-        "price": mt5.symbol_info_tick(symbol).bid,
-        # 'sl': price - 50 * point,
-        # 'tp': price + 150 * point,
-        'comment':'Python Script Buy',
-        'type_time': mt5.ORDER_TIME_GTC,
-        'type_filling': mt5.ORDER_FILLING_FOK,
-    }
-    # send a trading request
-    result=mt5.order_send(request)
-    position_ID = result.order
     return
 
+def buy_order(symbol,volume):
+    initializeMT5()
+    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).ask,'Bot Buying')
+    return
+
+def sell_order(symbol,volume):
+    initializeMT5()
+    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).bid,'Bot Selling')
+    return
 
 # close Order
 def close_order(ticket):
@@ -104,6 +104,5 @@ def close_order(ticket):
     }
     # send a trading request
     result = mt5.order_send(request)
-    print("failed, error code =",mt5.last_error())
     print(result)
     return
