@@ -30,17 +30,21 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+This project is a rough attempt on building a Forex Trading Bot with Dash UI. It trades on Metatrader5 trading platform(MT5). It takes into account the following things before taking any buy or sell position:
+>
+>
+>
 
 Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
+## Disclaimer
+This Forex Trading bot is not perfect, it is inadvisable to run this bot unsuperviced and should be monitored every now and then. However, the programmer shall do abit of tweeking in the near future to be a better trade bot.
 
 ### Built With
 
+* [![Python][python.js]][python-url]
 * [![Plotly][plotly.js]][Dash-url]
 
 
@@ -128,7 +132,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -137,7 +141,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Marc Lawrence C. Pua - [@twitter_handle](https://x.com/pua_marc?t=lROs0h6ERZ1AM1cjNYN66g&s=09) - marcpua8567@gmail.com
+Marc Lawrence C. Pua - marcpua8567@gmail.com
 
 Project Link: [https://github.com/github_username/repo_name](https://github.com/PUAMarcLawrence/Forex-TradingBot)
 
@@ -166,9 +170,12 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 [stars-url]: https://github.com/github_username/repo_name/stargazers
 [issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
 [issues-url]: https://github.com/github_username/repo_name/issues
+
 [license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
 [license-url]: https://github.com/PUAMarcLawrence/Forex-AI-TradingBot/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/marc-lawrence-pua-07a656211
+[python.js]: https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54
+[python-url]: https://www.python.org/
 [plotly.js]: https://img.shields.io/badge/Plotly-%233F4F75.svg?style=for-the-badge&logo=plotly&logoColor=white
 [Dash-url]: https://dash.plotly.com/

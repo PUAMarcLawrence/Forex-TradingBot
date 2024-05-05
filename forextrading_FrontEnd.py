@@ -1,33 +1,55 @@
 # Import Packages
-import dash_bootstrap_components as dbc
-import json
 import math
 import pandas as pd
 import plotly.graph_objects as go
 import MetaTrader5 as mt5
 import threading
 import subprocess
-from dash import Dash, html, dcc, Output, Input, State
+from dash import Dash,html,dcc,Output,Input,State
 from datetime import datetime, timedelta
-from modules.sqlite_functions import login_retrieve
-from modules.mt5_functions import TIMEFRAME_DICT,close_order
 from plotly import subplots
 from waitress import serve
+from modules.sqlite_functions import database_initialize, login_retrieve
+from modules.mt5_functions import initializeMT5,newUser
 
+#Bot Start UP
+database_initialize()
+while login_retrieve() == None:
+    print("No Account in Database:")
+    userData = input("Enter user ID: ")
+    userPass = input("Password: ")
+    print("Select which server: \n [1]OctaFX-Demo \n [2]OctaFX-Real2 \n [3]OctaFX-Real")
+    while True:
+        serverSelect = input("Enter number: ")
+        if serverSelect == '1':
+            serverData = 'OctaFX-Demo'
+            break
+        elif serverSelect == '2':
+            serverData = 'OctaFX-Real2'
+            break
+        elif serverSelect == '3':
+            serverData = 'OctaFX-Real'
+            break
+        else:
+            print("INVALID INPUT")
+    if newUser(): break
+if login_retrieve() != None:    
+    userData,userPass,serverData = login_retrieve()
+    mt5.initialize(login=int(userData),password=userPass, server=serverData)
+    print("Login Successful...")
+
+from modules.mt5_functions import TIMEFRAME_DICT, close_order
+
+# Currency pairs
+currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
 def run_script(script_name):
     subprocess.run(["python", script_name])
+    return
 
 # initialize app
 app = Dash(__name__,meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=0.5"}], external_stylesheets=["assets\style.css"]) # external_stylesheets=[dbc.themes.SPACELAB,dbc.icons.BOOTSTRAP])
 app.title = "FOREX Trader Bot"
-# mt5.initialize()
-if not mt5.initialize(login=212636007,password="9X@buA3G", server="OctaFX-Demo"):
-    print("initialize() failed, error code =",mt5.last_error())
-    quit()
-
-# Currency pairs
-currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
 # Switches Account
 def login_account():
@@ -227,26 +249,23 @@ balance=mt5.account_info().balance, equity=mt5.account_info().equity, margin=mt5
     ]
 
 ####### STUDIES TRACES ######
-
 # Moving average
 def moving_average_trace(df, fig):
     df2 = df.rolling(window=5).mean()
     trace = go.Scatter(
-        x=df2["time"], y=df2["close"], mode="lines", showlegend=False, name="MA"
+        x=df2.index, y=df2["close"], mode="lines", showlegend=False, name="MA"
     )
     fig.append_trace(trace, 1, 1)  # plot in first row
     return fig
-
 
 # Exponential moving average
 def e_moving_average_trace(df, fig):
     df2 = df.rolling(window=20).mean()
     trace = go.Scatter(
-        x=df2["time"], y=df2["close"], mode="lines", showlegend=False, name="EMA"
+        x=df2.index, y=df2["close"], mode="lines", showlegend=False, name="EMA"
     )
     fig.append_trace(trace, 1, 1)  # plot in first row
     return fig
-
 
 # Bollinger Bands
 def bollinger_trace(df, fig, window_size=10, num_of_std=5):
@@ -257,15 +276,15 @@ def bollinger_trace(df, fig, window_size=10, num_of_std=5):
     lower_band = rolling_mean - (rolling_std * num_of_std)
 
     trace = go.Scatter(
-        x=df["time"], y=upper_band, mode="lines", showlegend=False, name="BB_upper"
+        x=df.index, y=upper_band, mode="lines", showlegend=False, name="BB_upper"
     )
 
     trace2 = go.Scatter(
-        x=df["time"], y=rolling_mean, mode="lines", showlegend=False, name="BB_mean"
+        x=df.index, y=rolling_mean, mode="lines", showlegend=False, name="BB_mean"
     )
 
     trace3 = go.Scatter(
-        x=df["time"], y=lower_band, mode="lines", showlegend=False, name="BB_lower"
+        x=df.index, y=lower_band, mode="lines", showlegend=False, name="BB_lower"
     )
 
     fig.append_trace(trace, 1, 1)  # plot in first row
@@ -273,17 +292,15 @@ def bollinger_trace(df, fig, window_size=10, num_of_std=5):
     fig.append_trace(trace3, 1, 1)  # plot in first row
     return fig
 
-
 # Accumulation Distribution
 def accumulation_trace(df):
     df["volume"] = ((df["close"] - df["low"]) - (df["high"] - df["close"])) / (
         df["high"] - df["low"]
     )
     trace = go.Scatter(
-        x=df["time"], y=df["volume"], mode="lines", showlegend=False, name="Accumulation"
+        x=df.index, y=df["volume"], mode="lines", showlegend=False, name="Accumulation"
     )
     return trace
-
 
 # Commodity Channel Index
 def cci_trace(df, ndays=5):
@@ -293,32 +310,28 @@ def cci_trace(df, ndays=5):
         / (0.015 * TP.rolling(window=10, center=False).std()),
         name="cci",
     )
-    trace = go.Scatter(x=df["time"], y=CCI, mode="lines", showlegend=False, name="CCI")
+    trace = go.Scatter(x=df.index, y=CCI, mode="lines", showlegend=False, name="CCI")
     return trace
-
 
 # Price Rate of Change
 def roc_trace(df, ndays=5):
     N = df["close"].diff(ndays)
     D = df["close"].shift(ndays)
     ROC = pd.Series(N / D, name="roc")
-    trace = go.Scatter(x=df["time"], y=ROC, mode="lines", showlegend=False, name="ROC")
+    trace = go.Scatter(x=df.index, y=ROC, mode="lines", showlegend=False, name="ROC")
     return trace
-
 
 # Stochastic oscillator %K
 def stoc_trace(df):
     SOk = pd.Series((df["close"] - df["low"]) / (df["high"] - df["low"]), name="SO%k")
-    trace = go.Scatter(x=df["time"], y=SOk, mode="lines", showlegend=False, name="SO%k")
+    trace = go.Scatter(x=df.index, y=SOk, mode="lines", showlegend=False, name="SO%k")
     return trace
-
 
 # Momentum
 def mom_trace(df, n=5):
     M = pd.Series(df["close"].diff(n), name="Momentum_" + str(n))
-    trace = go.Scatter(x=df["time"], y=M, mode="lines", showlegend=False, name="MOM")
+    trace = go.Scatter(x=df.index, y=M, mode="lines", showlegend=False, name="MOM")
     return trace
-
 
 # Pivot points
 def pp_trace(df, fig):
@@ -329,13 +342,13 @@ def pp_trace(df, fig):
     S2 = pd.Series(PP - df["high"] + df["low"])
     R3 = pd.Series(df["high"] + 2 * (PP - df["low"]))
     S3 = pd.Series(df["low"] - 2 * (df["high"] - PP))
-    trace = go.Scatter(x=df["time"], y=PP, mode="lines", showlegend=False, name="PP")
-    trace1 = go.Scatter(x=df["time"], y=R1, mode="lines", showlegend=False, name="R1")
-    trace2 = go.Scatter(x=df["time"], y=S1, mode="lines", showlegend=False, name="S1")
-    trace3 = go.Scatter(x=df["time"], y=R2, mode="lines", showlegend=False, name="R2")
-    trace4 = go.Scatter(x=df["time"], y=S2, mode="lines", showlegend=False, name="S2")
-    trace5 = go.Scatter(x=df["time"], y=R3, mode="lines", showlegend=False, name="R3")
-    trace6 = go.Scatter(x=df["time"], y=S3, mode="lines", showlegend=False, name="S3")
+    trace = go.Scatter(x=df.index, y=PP, mode="lines", showlegend=False, name="PP")
+    trace1 = go.Scatter(x=df.index, y=R1, mode="lines", showlegend=False, name="R1")
+    trace2 = go.Scatter(x=df.index, y=S1, mode="lines", showlegend=False, name="S1")
+    trace3 = go.Scatter(x=df.index, y=R2, mode="lines", showlegend=False, name="R2")
+    trace4 = go.Scatter(x=df.index, y=S2, mode="lines", showlegend=False, name="S2")
+    trace5 = go.Scatter(x=df.index, y=R3, mode="lines", showlegend=False, name="R3")
+    trace6 = go.Scatter(x=df.index, y=S3, mode="lines", showlegend=False, name="S3")
     fig.append_trace(trace, 1, 1)
     fig.append_trace(trace1, 1, 1)
     fig.append_trace(trace2, 1, 1)
@@ -345,11 +358,10 @@ def pp_trace(df, fig):
     fig.append_trace(trace6, 1, 1)
     return fig
 
-
 # MAIN CHART TRACES (STYLE tab)
 def line_trace(df):
     trace = go.Scatter(
-        x=df["time"], 
+        x=df.index, 
         y=df["close"], 
         mode="lines", 
         showlegend=False, 
@@ -360,7 +372,7 @@ def line_trace(df):
 
 def area_trace(df):
     trace = go.Scatter(
-        x=df["time"],
+        x=df.index,
         y=df["close"], 
         showlegend=False, 
         fill="toself", 
@@ -371,7 +383,7 @@ def area_trace(df):
 
 def bar_trace(df):
     return go.Ohlc(
-        x=df["time"],
+        x=df.index,
         open=df["open"],
         high=df["high"],
         low=df["low"],
@@ -385,7 +397,7 @@ def bar_trace(df):
 
 def colored_bar_trace(df):
     return go.Ohlc(
-        x=df['time'],
+        x=df.index,
         open=df["open"],
         high=df["high"],
         low=df["low"],
@@ -397,7 +409,7 @@ def colored_bar_trace(df):
 
 def candlestick_trace(df):
     return go.Candlestick(
-        x=df["time"],
+        x=df.index,
         open=df["open"],
         high=df["high"],
         low=df["low"],
@@ -411,8 +423,15 @@ def candlestick_trace(df):
 # Returns graph figure
 def get_fig(currency_pair, ask, bid, type_trace, studies, period):
     # Get OHLC data
-    df = pd.DataFrame(mt5.copy_rates_from_pos(currency_pair, TIMEFRAME_DICT[period], 0, 48))
+    if period == "M15":
+        bars = 115
+    elif period == "H1":
+        bars = 72
+    else:
+        bars = 48
+    df = pd.DataFrame(mt5.copy_rates_from_pos(currency_pair, TIMEFRAME_DICT[period], 0, bars))
     df['time'] = pd.to_datetime(df['time'], unit='s')
+    df.set_index('time', inplace = True)
     subplot_traces = [  # first row traces
         "accumulation_trace",
         "cci_trace",
@@ -461,7 +480,7 @@ def get_fig(currency_pair, ask, bid, type_trace, studies, period):
     fig["layout"]["autosize"] = True
     fig["layout"]["height"] = 400
     fig["layout"]["xaxis"]["rangeslider"]["visible"] = False
-    fig["layout"]["xaxis"]["tickformat"] = "%H:%M"
+    fig["layout"]["xaxis"]["tickformat"] = "%d %B <br> %Y <br> %H:%M"
     fig["layout"]["yaxis"]["showgrid"] = True
     fig["layout"]["yaxis"]["gridcolor"] = "#3E3F40"
     fig["layout"]["yaxis"]["gridwidth"] = 1
@@ -469,7 +488,6 @@ def get_fig(currency_pair, ask, bid, type_trace, studies, period):
     fig.update_xaxes(rangebreaks=[dict(bounds=['sat', 'mon'])])
 
     return fig
-
 
 # returns chart div
 def chart_div(pair):
@@ -580,11 +598,11 @@ def chart_div(pair):
                                         className="dropdown-period",
                                         id=pair + "dropdown_period",
                                         options=[
+                                            {"label": "M15", "value": "M15"},
                                             {"label": "H1", "value": "H1"},
                                             {"label": "H4", "value": "H4"},
-                                            {"label": "D1", "value": "D1"},
                                         ],
-                                        value="H1",
+                                        value="M15",
                                         clearable=False,
                                     )
                                 ],
@@ -655,7 +673,6 @@ def load_orders():
             orders.append(order)
     return orders
 
-
 # Dash App Layout
 app.layout = html.Div(
     className="row",
@@ -699,8 +716,7 @@ app.layout = html.Div(
                             id="pairs",
                             className="div-bid-ask",
                             children=[
-                                get_row(pair)
-                                for pair in currencies
+                                get_row(pair) for pair in currencies
                             ],
                         ),
                     ],
@@ -769,6 +785,8 @@ app.layout = html.Div(
                 for pair in currencies
             ]
         ),
+        # Hidden Div that stores all orders
+        html.Div(id="orders", style={"display": "none"}),
     ],
 )
 
@@ -904,7 +922,7 @@ def generate_login_order():
             elif password is None:
                 return html.P("Please Enter the password")
             else:
-                if not mt5.initialize(login=user,password=password,server=server):
+                if not newUser(str(user),password,server):
                     return html.P("Login Failed")
             return html.P("Logged In")
     return switch_users
@@ -1010,15 +1028,15 @@ app.callback(
     [State("charts_clicked", "children")],
 )(generate_chart_button_callback())
 
-# # updates hidden orders div with all pairs orders
-# app.callback(
-#     Output("orders", "children"),
-#     [Input(pair + "orders", "children") for pair in currencies]
-#     + [Input(pair + "bid", "children") for pair in currencies]
-#     + [Input(pair + "ask", "children") for pair in currencies]
-#     + [Input("closable_orders", "value")],
-#     [State("orders", "children")],
-# )(close_order())
+# updates hidden orders div with all pairs orders
+@app.callback(
+    Output("orders", "children"),
+    Input("closable_orders", "value"),
+)
+def close_orders(ticket):
+    if ticket != None:
+        close_order(ticket)
+    return
 
 # Callback to update Orders Table
 @app.callback(
@@ -1115,5 +1133,6 @@ def update_time(n):
 if __name__ == '__main__':
     tradingBotScript_thread = threading.Thread(target=run_script, args=("ForexTradingBot_Backend.py",))
     tradingBotScript_thread.start()
-    app.run(host="0.0.0.0",port=8000,debug=True)
+    # app.run(host="0.0.0.0",port=8000,debug=True)
+    serve(app, host='127.0.0.1', port=8000, url_prefix='/my-app')
     tradingBotScript_thread.join()
