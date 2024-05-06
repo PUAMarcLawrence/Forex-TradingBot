@@ -1,12 +1,7 @@
 #import
-import MetaTrader5 as mt5
 import pandas as pd
-import numpy as np
-import threading
-import time
-from modules.mt5_functions import get_positions,checkActivePos,close_order,buy_order,sell_order
 from datetime import datetime, timedelta
-# from forextrading_botNew import currencies
+from modules.mt5_functions import get_positions,checkActivePos,close_order,buy_order,sell_order
 
 
 print_status = {
@@ -14,12 +9,9 @@ print_status = {
     "printed_open" : False,
     "loggedIn" : False
 }
-
-# server date time
-datetimeNow = datetime.now() - timedelta(hours=6,microseconds=10)
-
+# Next minute Finder
 def find_next_min(findTime):
-    current_time = datetime.now()
+    current_time = datetime.now() - timedelta(hours=6)
     current_hour = current_time.hour
     current_minute = current_time.minute
 
@@ -35,7 +27,10 @@ def find_next_min(findTime):
 
     return next_minute.strftime('%H:%M:00')
 
+# Market Check Function
 def checkMarket_status():
+    # server date time
+    datetimeNow = datetime.now() - timedelta(hours=6)
     day_of_week = datetimeNow.weekday()
     if day_of_week > 4:
         if not print_status["printed_closed"]:
@@ -58,11 +53,11 @@ def momentum_trading(symbol):
     data['SMA_short'] = data['close'].rolling(window=10).mean()
     data['SMA_long'] = data['close'].rolling(window=30).mean()
     # Check for buy/sell signals
-    if data['SMA_short'].iloc[-2] < data['SMA_long'].iloc[-2] and data['SMA_short'].iloc[-1] == data['SMA_long'].iloc[-1]:
+    if data['SMA_short'].iloc[-2] < data['SMA_long'].iloc[-2] and data['SMA_short'].iloc[-1] >= data['SMA_long'].iloc[-1]:
         print("Buy signal detected!")
         return 1
         # Implement your buy order here
-    elif data['SMA_short'].iloc[-2] > data['SMA_long'].iloc[-2] and data['SMA_short'].iloc[-1] == data['SMA_long'].iloc[-1]:
+    elif data['SMA_short'].iloc[-2] > data['SMA_long'].iloc[-2] and data['SMA_short'].iloc[-1] >= data['SMA_long'].iloc[-1]:
         print("Sell signal detected!")
         return 0
         # Implement your sell order here
@@ -99,12 +94,16 @@ def main():
     print('Bot Online')
     currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
     timer = find_next_min(15)
-    print(timer)
+    print('next check: ',timer)
     while True:
+        # server date time
+        datetimeNow = datetime.now() - timedelta(hours=6)
         if checkMarket_status() == True:
-            if datetime.now().strftime('%H:%M:%S') == timer:
+            if datetimeNow.strftime('%H:%M:%S') == timer:
                 for symbol in currencies:
                     tradeDecision(symbol)
                 timer = find_next_min(15)
+                print('next check: ',timer)
+
 if __name__ == '__main__':
     main()

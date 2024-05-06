@@ -13,14 +13,17 @@ TIMEFRAME_DICT = {
     'D1': mt5.TIMEFRAME_D1,
 }
 
-
-
 def initializeMT5():
     userData,userPass,serverData = login_retrieve()
     if not mt5.initialize(login=int(userData),password=userPass, server=serverData):
         return False
     print("Login Success")
     return True
+
+def refreshInitialization():
+    userData,userPass,serverData = login_retrieve()
+    mt5.initialize(login=int(userData),password=userPass, server=serverData)
+    return
 
 def newUser(userData,userPass,serverData):
     if not mt5.initialize(login=int(userData),password=userPass, server=serverData):
@@ -29,27 +32,46 @@ def newUser(userData,userPass,serverData):
     update_account(userData,userPass,serverData)
     return True
 
+def syymbolInfo(symbol):
+    return mt5.symbol_info_tick(symbol)._asdict()
+
+def accountInfo(info):
+    refreshInitialization()
+    account = mt5.account_info()
+    accountDict = {
+        'login' : account.login,
+        'balance':account.balance,
+        'equity': account.equity,
+        'margin': account.margin,
+        'margin_free':account.margin_free,
+        'margin_level':account.margin_level,
+    }
+    return accountDict[info]
+
+def getActivePos():
+    refreshInitialization()
+    return mt5.positions_get()
+
+def getHistoricPos(fromData,toData):
+    refreshInitialization()
+    return mt5.history_deals_get(fromData,toData)
+
+def getSymbolTick(symbol):
+    refreshInitialization()
+    return mt5.symbol_info_tick(symbol)._asdict()
+
 def get_positions(symbol,timeframe,bars):
-    initializeMT5()
+    refreshInitialization()
     rates=mt5.copy_rates_from_pos(symbol,TIMEFRAME_DICT[timeframe],0,bars)
-    mt5.shutdown()
     return rates
 
 def checkActivePos(ticker):
-    initializeMT5()
+    refreshInitialization()
     positions = mt5.positions_get(symbol=ticker)
     df = pd.DataFrame(positions)
     if positions != ():
         return df.iloc[0,0]
     return None
-
-# get symbol names
-# def get_symbol_names():
-#     # get symbols
-#     symbols = mt5.symbols_get()
-#     symbols_df = pd.DataFrame(symbols, columns=symbols[0]._asdict().keys())
-#     symbol_names = symbols_df['name'].tolist()
-#     return symbol_names
 
 # create Order
 def create_order(symbol,qty,order_type,price,comment):
@@ -69,12 +91,12 @@ def create_order(symbol,qty,order_type,price,comment):
     return
 
 def buy_order(symbol,volume):
-    initializeMT5()
+    refreshInitialization()
     create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).ask,'Bot Buying')
     return
 
 def sell_order(symbol,volume):
-    initializeMT5()
+    refreshInitialization()
     create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).bid,'Bot Selling')
     return
 
@@ -106,3 +128,11 @@ def close_order(ticket):
     result = mt5.order_send(request)
     print(result)
     return
+
+# get symbol names
+# def get_symbol_names():
+#     # get symbols
+#     symbols = mt5.symbols_get()
+#     symbols_df = pd.DataFrame(symbols, columns=symbols[0]._asdict().keys())
+#     symbol_names = symbols_df['name'].tolist()
+#     return symbol_names
