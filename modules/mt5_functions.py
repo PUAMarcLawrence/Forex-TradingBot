@@ -13,6 +13,7 @@ TIMEFRAME_DICT = {
     'D1': mt5.TIMEFRAME_D1,
 }
 
+# initialize connection
 def initializeMT5():
     userData,userPass,serverData = login_retrieve()
     if not mt5.initialize(login=int(userData),password=userPass, server=serverData):
@@ -20,11 +21,13 @@ def initializeMT5():
     print("Login Success")
     return True
 
+# refresh connection
 def refreshInitialization():
     userData,userPass,serverData = login_retrieve()
     mt5.initialize(login=int(userData),password=userPass, server=serverData)
     return
 
+# New user Function
 def newUser(userData,userPass,serverData):
     if not mt5.initialize(login=int(userData),password=userPass, server=serverData):
         return False
@@ -32,9 +35,12 @@ def newUser(userData,userPass,serverData):
     update_account(userData,userPass,serverData)
     return True
 
-def syymbolInfo(symbol):
+# Parse symbol info
+def getSymbolTick(symbol):
+    refreshInitialization()
     return mt5.symbol_info_tick(symbol)._asdict()
 
+# Parse Account Info
 def accountInfo(info):
     refreshInitialization()
     account = mt5.account_info()
@@ -48,23 +54,23 @@ def accountInfo(info):
     }
     return accountDict[info]
 
+# Parse all active positions
 def getActivePos():
     refreshInitialization()
     return mt5.positions_get()
 
+# parse history orders
 def getHistoricPos(fromData,toData):
     refreshInitialization()
     return mt5.history_deals_get(fromData,toData)
 
-def getSymbolTick(symbol):
-    refreshInitialization()
-    return mt5.symbol_info_tick(symbol)._asdict()
-
+# parse for active positions by num of bars
 def get_positions(symbol,timeframe,bars):
     refreshInitialization()
     rates=mt5.copy_rates_from_pos(symbol,TIMEFRAME_DICT[timeframe],0,bars)
     return rates
 
+# check for active positions
 def checkActivePos(ticker):
     refreshInitialization()
     positions = mt5.positions_get(symbol=ticker)
@@ -74,13 +80,14 @@ def checkActivePos(ticker):
     return None
 
 # create Order
-def create_order(symbol,qty,order_type,price,comment):
+def create_order(symbol,qty,order_type,price,SL,comment):
     request={
         "action": mt5.TRADE_ACTION_DEAL,
         "symbol": symbol,
         "volume": qty,
         "type": order_type,
         "price": price,
+        "SL": SL,
         'comment':comment,
         'type_time': mt5.ORDER_TIME_GTC,
         'type_filling': mt5.ORDER_FILLING_FOK,
@@ -89,15 +96,22 @@ def create_order(symbol,qty,order_type,price,comment):
     order = mt5.order_send(request)
     print(order)
     return
-
+# buy order
 def buy_order(symbol,volume):
     refreshInitialization()
-    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).ask,'Bot Buying')
+    buy_price = mt5.symbol_info_tick(symbol).ask
+    point = mt5.symbol_info(symbol).point
+    buy_sl = buy_price - (50 * point)
+    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).ask,buy_sl,'Bot Buying')
     return
 
+# sell order
 def sell_order(symbol,volume):
     refreshInitialization()
-    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).bid,'Bot Selling')
+    sell_price = mt5.symbol_info_tick(symbol).bid
+    point = mt5.symbol_info(symbol).point
+    sell_sl = sell_price + (50 * point)
+    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).bid,sell_sl,'Bot Selling')
     return
 
 # close Order

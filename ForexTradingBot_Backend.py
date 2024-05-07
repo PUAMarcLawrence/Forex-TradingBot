@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from modules.mt5_functions import get_positions,checkActivePos,close_order,buy_order,sell_order
 
 
+
 print_status = {
     "printed_closed" : False,
     "printed_open" : False,

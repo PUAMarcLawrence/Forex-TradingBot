@@ -8,11 +8,14 @@ from dash import Dash,html,dcc,Output,Input,State
 from datetime import datetime, timedelta
 from plotly import subplots
 from waitress import serve
-from modules.sqlite_functions import database_initialize, login_retrieve
-from modules.mt5_functions import initializeMT5,newUser,syymbolInfo,accountInfo,getActivePos,getSymbolTick,get_positions,getHistoricPos
+from modules.sqlite_functions import database_initialize, login_retrieve, choiceRetrieve, update_choice
+from modules.mt5_functions import initializeMT5,newUser,accountInfo,getActivePos,getSymbolTick,get_positions,getHistoricPos
+
+# Currency pairs
+currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
 #Bot Start UP
-database_initialize()
+database_initialize(currencies)
 if login_retrieve() != None:
     initializeMT5()
 while login_retrieve() == None:
@@ -37,9 +40,6 @@ while login_retrieve() == None:
         break
 
 from modules.mt5_functions import close_order
-
-# Currency pairs
-currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
 def run_script(script_name):
     subprocess.run(["python", script_name])
@@ -112,7 +112,7 @@ def login_account():
 
 # Creates HTML Bid and Ask (Buy/Sell buttons)
 def get_row(currency_pair):
-    data = syymbolInfo(currency_pair)
+    data = getSymbolTick(currency_pair)
     return html.Div(
         children=[
             # Summary
@@ -866,6 +866,21 @@ def generate_close_graph_callback():
 
     return close_callback
 
+#Function to update choice Database
+def update_Choice_database(pair):
+    def updateChoice(n_click):
+        if n_click != 0:
+            choice = choiceRetrieve(pair)
+            if choice == 1:
+                choice = 0
+            else:
+                choice = 1
+            update_choice(pair,choice)
+        choice = choiceRetrieve(pair)
+        if choice == 0: return {'background-color': 'transparent'}
+        if choice == 1: return {'background-color': 'green'}
+    return updateChoice
+
 # Function to open or close STYLE or STUDIES menu
 def generate_open_close_menu_callback():
     def open_close_menu(n, className):
@@ -1018,6 +1033,12 @@ for pair in currencies:
         [Input(pair + "close", "n_clicks")],
         [State(pair + "Button_chart", "n_clicks")],
     )(generate_close_graph_callback())
+
+    # updates the database of currency pair choices
+    app.callback(
+        Output(pair + "Bot","style"),
+        Input(pair + "Bot","n_clicks")
+    )(update_Choice_database(pair))
 
     # show or hide graph menu
     app.callback(

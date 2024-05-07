@@ -1,26 +1,37 @@
 import sqlite3
 databasename = 'database/login.db'
 
-def database_initialize():
+def database_initialize(list):
     # Connect to database
     database = sqlite3.connect(databasename)
 
     # Create a cursor
     cur = database.cursor()
-    try:
-        # Create a Table
-        cur.execute(""" CREATE TABLE login (
-                    username number,
-                    password text,
-                    server text
-                    )
-                    """)
+    # Create a Table
+    cur.execute(""" CREATE TABLE IF NOT EXISTS login (
+                username number,
+                password text,
+                server text
+                )
+                """)
+    # Commit our command
+    database.commit()
 
+    # Create a cursor
+    cur = database.cursor()
+    my_columns = " NUMBER, ".join(list)
+    my_command = "CREATE TABLE IF NOT EXISTS currencies (" + my_columns + " NUMBER)"
+    cur.execute(my_command)
+    # Commit our command
+    database.commit()
+
+    # Create a cursor
+    cur = database.cursor()
+    cur.execute("SELECT * FROM currencies")
+    if cur.fetchone() == None:
+        cur.execute("INSERT INTO currencies VALUES (0,0,0,0,0)")
         # Commit our command
         database.commit()
-    except:
-        print("table already exists,skipping...")
-    
     # close out connection
     database.close()
     return
@@ -57,3 +68,34 @@ def update_account(ID,password,server):
     # close out connection
     database.close()
     return
+
+def update_choice(symbol,choice):
+    # Connect to database
+    database = sqlite3.connect(databasename)
+
+    # Create a cursor
+    cur = database.cursor()
+    
+    # UPDATE
+    command = "UPDATE currencies SET " + symbol + " = " + str(choice) + " WHERE rowid = '1'"
+    cur.execute(command)
+    
+    # Commit our command
+    database.commit()
+
+    # close out connection
+    database.close()
+    return
+
+def choiceRetrieve(symbol):
+    # Connect to database
+    database = sqlite3.connect(databasename)
+
+    # Create a cursor
+    cur = database.cursor()
+
+    cur.execute("SELECT " + symbol + " FROM currencies")
+    choices = cur.fetchone()
+    database.close()
+
+    return choices[0]
