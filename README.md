@@ -107,7 +107,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
     - [X] Account Details/Status Display
     - [X] Currency Pair Chart
     - [X] Order List (Active/Closed)
-- [ ] Back End
+- [X] Back End
     - [X] Market Schedule
     - [X] AI Logic
 
