@@ -80,14 +80,16 @@ def checkActivePos(ticker):
     return None
 
 # create Order
-def create_order(symbol,qty,order_type,price,SL,comment):
+# def create_order(symbol,qty,order_type,price,comment):
+def create_order(symbol,qty,order_type,price,TP,SL,comment):
     request={
         "action": mt5.TRADE_ACTION_DEAL,
         "symbol": symbol,
         "volume": qty,
         "type": order_type,
         "price": price,
-        "SL": SL,
+        'sl': SL,
+        'tp': TP,
         'comment':comment,
         'type_time': mt5.ORDER_TIME_GTC,
         'type_filling': mt5.ORDER_FILLING_FOK,
@@ -96,13 +98,16 @@ def create_order(symbol,qty,order_type,price,SL,comment):
     order = mt5.order_send(request)
     print(order)
     return
+
 # buy order
 def buy_order(symbol,volume):
     refreshInitialization()
     buy_price = mt5.symbol_info_tick(symbol).ask
     point = mt5.symbol_info(symbol).point
-    buy_sl = buy_price - (50 * point)
-    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).ask,buy_sl,'Bot Buying')
+    buy_sl = buy_price - 50 * point
+    buy_tp = buy_price + 150 * point
+    # create_order(symbol,volume,mt5.ORDER_TYPE_BUY,buy_price,'Bot Buying')
+    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,buy_price,buy_tp,buy_sl,'Bot Buying')
     return
 
 # sell order
@@ -110,8 +115,11 @@ def sell_order(symbol,volume):
     refreshInitialization()
     sell_price = mt5.symbol_info_tick(symbol).bid
     point = mt5.symbol_info(symbol).point
-    sell_sl = sell_price + (50 * point)
-    create_order(symbol,volume,mt5.ORDER_TYPE_BUY,mt5.symbol_info_tick(symbol).bid,sell_sl,'Bot Selling')
+    print(point)
+    sell_sl = sell_price + 50 * point
+    sell_tp = sell_price - 150 * point
+    # create_order(symbol,volume,mt5.ORDER_TYPE_BUY,sell_price,'Bot Selling')
+    create_order(symbol,volume,mt5.ORDER_TYPE_SELL,sell_price,sell_tp,sell_sl,'Bot Selling')
     return
 
 # close Order

@@ -79,7 +79,7 @@ def update_choice(symbol,choice):
     # UPDATE
     command = "UPDATE currencies SET " + symbol + " = " + str(choice) + " WHERE rowid = '1'"
     cur.execute(command)
-    
+
     # Commit our command
     database.commit()
 
@@ -99,3 +99,15 @@ def choiceRetrieve(symbol):
     database.close()
 
     return choices[0]
+
+def getCurrencies():
+    # Connect to database
+    database = sqlite3.connect(databasename)
+
+    # Create a cursor
+    cur = database.cursor()
+    cur.execute("SELECT * FROM currencies")
+    headers = []
+    for header in cur.description:
+        headers.append(header[0])
+    return headers

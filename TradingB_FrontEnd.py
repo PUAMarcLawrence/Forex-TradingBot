@@ -2,15 +2,12 @@
 import math
 import pandas as pd
 import plotly.graph_objects as go
-import threading
-import subprocess
 from dash import Dash,html,dcc,Output,Input,State
 from datetime import datetime, timedelta
 from plotly import subplots
 from waitress import serve
 from modules.sqlite_functions import database_initialize, login_retrieve, choiceRetrieve, update_choice
-from modules.mt5_functions import initializeMT5,newUser,accountInfo,getActivePos,getSymbolTick,get_positions,getHistoricPos
-
+from modules.mt5_functions import *
 # Currency pairs
 currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
@@ -38,12 +35,6 @@ while login_retrieve() == None:
             print("INVALID INPUT")
     if newUser(userData,userPass,serverData): 
         break
-
-from modules.mt5_functions import close_order
-
-def run_script(script_name):
-    subprocess.run(["python", script_name])
-    return
 
 # initialize app
 app = Dash(__name__,meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=0.5"}], external_stylesheets=["assets\style.css"]) # external_stylesheets=[dbc.themes.SPACELAB,dbc.icons.BOOTSTRAP])
@@ -437,9 +428,9 @@ def candlestick_trace(df):
 # Returns graph figure
 def get_fig(currency_pair, ask, bid, type_trace, studies, period):
     # Get OHLC data
-    if period == "M15":
+    if period == "H1":
         bars = 115
-    elif period == "H1":
+    elif period == "H4":
         bars = 72
     else:
         bars = 48
@@ -612,11 +603,11 @@ def chart_div(pair):
                                         className="dropdown-period",
                                         id=pair + "dropdown_period",
                                         options=[
-                                            {"label": "M15", "value": "M15"},
                                             {"label": "H1", "value": "H1"},
                                             {"label": "H4", "value": "H4"},
+                                            {"label": "D4", "value": "D4"},
                                         ],
-                                        value="M15",
+                                        value="H1",
                                         clearable=False,
                                     )
                                 ],
@@ -1179,8 +1170,5 @@ def update_time(n):
     return datetimeNow.strftime("%b %d %Y %H:%M:%S")
 
 if __name__ == '__main__':
-    tradingBotScript_thread = threading.Thread(target=run_script, args=("ForexTradingBot_Backend.py",))
-    tradingBotScript_thread.start()
     # app.run(host="0.0.0.0",port=8000,debug=True)
     serve(app.server, host='0.0.0.0', port=8000,threads=10)
-    tradingBotScript_thread.join()
