@@ -31,8 +31,8 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 This project is a rough attempt on building a Forex Trading Bot with Dash UI. It trades on Metatrader5 trading platform(MT5). It takes into account the following things before taking any buy or sell position:
->
->
+> Market Schedule
+> Market Trend
 >
 
 Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`

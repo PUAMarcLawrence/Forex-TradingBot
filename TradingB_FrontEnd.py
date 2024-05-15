@@ -1,19 +1,20 @@
-# Import Packages
+# Import Modules
 import math
 import pandas as pd
 import plotly.graph_objects as go
-import MetaTrader5 as mt5
-import threading
-import subprocess
 from dash import Dash,html,dcc,Output,Input,State
 from datetime import datetime, timedelta
 from plotly import subplots
 from waitress import serve
-from modules.sqlite_functions import database_initialize, login_retrieve
-from modules.mt5_functions import initializeMT5,newUser
+from modules.sqlite_functions import database_initialize, login_retrieve, choiceRetrieve, update_choice
+from modules.mt5_functions import *
+# Currency pairs
+currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
 #Bot Start UP
-database_initialize()
+database_initialize(currencies)
+if login_retrieve() != None:
+    initializeMT5()
 while login_retrieve() == None:
     print("No Account in Database:")
     userData = input("Enter user ID: ")
@@ -32,20 +33,8 @@ while login_retrieve() == None:
             break
         else:
             print("INVALID INPUT")
-    if newUser(): break
-if login_retrieve() != None:    
-    userData,userPass,serverData = login_retrieve()
-    mt5.initialize(login=int(userData),password=userPass, server=serverData)
-    print("Login Successful...")
-
-from modules.mt5_functions import TIMEFRAME_DICT, close_order
-
-# Currency pairs
-currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
-
-def run_script(script_name):
-    subprocess.run(["python", script_name])
-    return
+    if newUser(userData,userPass,serverData): 
+        break
 
 # initialize app
 app = Dash(__name__,meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=0.5"}], external_stylesheets=["assets\style.css"]) # external_stylesheets=[dbc.themes.SPACELAB,dbc.icons.BOOTSTRAP])
@@ -61,7 +50,7 @@ def login_account():
                 className="row summary",
                 n_clicks=0,
                 children=[
-                    html.P("ACCOUNT: " + str(mt5.account_info().login))
+                    html.P("ACCOUNT: " + str(accountInfo('login')))
                 ],
             ),
             # Contents
@@ -74,19 +63,31 @@ def login_account():
                         className="button-login",
                         children=[
                             html.Div(
-                                children=["ID: ",
-                                          dcc.Input(id='user-login',type='number'),
+                                children=[
+                                    "ID: ",
+                                    dcc.Input(
+                                        id='user-login',
+                                        type='number'),
                                 ],style={"padding-left": "45px"}
                             ),
                             html.Div(
-                                children=["Password: ",
-                                          dcc.Input(id='pass-login',type='password'),
+                                children=[
+                                    "Password: ",
+                                    dcc.Input(
+                                        id='pass-login',
+                                        type='password'),
                                 ]
                             ),
                             html.Div(
                                 children=[
-                                     "Server: ",dcc.Dropdown(['OctaFX-Demo','OctaFX-Real2','OctaFX-Real'],'OctaFX-Demo',id= 'FX-Server')
-                                     ]),
+                                    "Server: ",
+                                    dcc.Dropdown(
+                                        ['OctaFX-Demo','OctaFX-Real2','OctaFX-Real'],
+                                        'OctaFX-Demo',
+                                        id= 'FX-Server'
+                                    )
+                                ]
+                            ),
                             html.Button(
                                 id="Login-user",
                                 children="login",
@@ -102,7 +103,7 @@ def login_account():
 
 # Creates HTML Bid and Ask (Buy/Sell buttons)
 def get_row(currency_pair):
-    data = mt5.symbol_info_tick(currency_pair)._asdict()
+    data = getSymbolTick(currency_pair)
     return html.Div(
         children=[
             # Summary
@@ -185,8 +186,7 @@ def get_color(a, b):
 
 # Replace ask_bid row for currency pair with colored values
 def replace_row(currency_pair, index, bid, ask):
-    data = mt5.symbol_info_tick(currency_pair)._asdict()
-
+    data = getSymbolTick(currency_pair)
     return [
         html.P(
             currency_pair, id=currency_pair, className="three-col"  # currency pair name
@@ -237,14 +237,19 @@ def get_top_bar_cell(cellTitle, cellValue):
 
 # Returns HTML Top Bar for app layout
 def get_top_bar(
-balance=mt5.account_info().balance, equity=mt5.account_info().equity, margin=mt5.account_info().margin, fm=mt5.account_info().margin_free, m_level=mt5.account_info().margin_level, open_pl=0
-):
+        balance=accountInfo('balance'),
+        equity=accountInfo('equity'),
+        margin=accountInfo('margin'),
+        free_margin=accountInfo('margin_free'),
+        margin_level=accountInfo('margin_level'),
+        open_pl=0
+    ):
     return [
         get_top_bar_cell("Balance", balance),
-        get_top_bar_cell("Equity", equity),
+        get_top_bar_cell("Equity",equity),
         get_top_bar_cell("Margin", margin),
-        get_top_bar_cell("Free Margin", fm),
-        get_top_bar_cell("Margin Level", m_level),
+        get_top_bar_cell("Free Margin", free_margin),
+        get_top_bar_cell("Margin Level", margin_level),
         get_top_bar_cell("Open P/L", open_pl),
     ]
 
@@ -423,13 +428,13 @@ def candlestick_trace(df):
 # Returns graph figure
 def get_fig(currency_pair, ask, bid, type_trace, studies, period):
     # Get OHLC data
-    if period == "M15":
+    if period == "H1":
         bars = 115
-    elif period == "H1":
+    elif period == "H4":
         bars = 72
     else:
         bars = 48
-    df = pd.DataFrame(mt5.copy_rates_from_pos(currency_pair, TIMEFRAME_DICT[period], 0, bars))
+    df = pd.DataFrame(get_positions(currency_pair,period,bars))
     df['time'] = pd.to_datetime(df['time'], unit='s')
     df.set_index('time', inplace = True)
     subplot_traces = [  # first row traces
@@ -598,11 +603,11 @@ def chart_div(pair):
                                         className="dropdown-period",
                                         id=pair + "dropdown_period",
                                         options=[
-                                            {"label": "M15", "value": "M15"},
                                             {"label": "H1", "value": "H1"},
                                             {"label": "H4", "value": "H4"},
+                                            {"label": "D4", "value": "D4"},
                                         ],
-                                        value="M15",
+                                        value="H1",
                                         clearable=False,
                                     )
                                 ],
@@ -630,7 +635,7 @@ def chart_div(pair):
 
 def load_orders():
     orders = []
-    dfPositions = mt5.positions_get()
+    dfPositions = getActivePos()
     for order in dfPositions:
         if order[5] > 0:
             typeO = 'Sell'
@@ -650,7 +655,7 @@ def load_orders():
             'Status': 'open'
         }
         orders.append(order)
-    dfOrders = mt5.history_deals_get(datetime.now() - timedelta(days=30),datetime.now())
+    dfOrders = getHistoricPos(datetime.now() - timedelta(days=30),datetime.now())
     for order in dfOrders:
         if order[13] != 0:
             if order[4] > 0:
@@ -729,7 +734,9 @@ app.layout = html.Div(
             children=[
                 # Top Bar Div - Displays Balance, Equity, ... , Open P/L
                 html.Div(
-                    id="top_bar", className="row div-top-bar", children=get_top_bar()
+                    id="top_bar", 
+                    className="row div-top-bar", 
+                    children=get_top_bar()
                 ),
                 # Charts Div
                 html.Div(
@@ -771,7 +778,10 @@ app.layout = html.Div(
                                 )
                             ],
                         ),
-                        html.Div(id="orders_table", className="row table-orders"),
+                        html.Div(
+                            id="orders_table", 
+                            className="row table-orders"
+                        ),
                     ],
                 ),
             ],
@@ -786,7 +796,10 @@ app.layout = html.Div(
             ]
         ),
         # Hidden Div that stores all orders
-        html.Div(id="orders", style={"display": "none"}),
+        html.Div(
+            id="orders", 
+            style={"display": "none"}
+        ),
     ],
 )
 
@@ -843,6 +856,21 @@ def generate_close_graph_callback():
         return 0
 
     return close_callback
+
+#Function to update choice Database
+def update_Choice_database(pair):
+    def updateChoice(n_click):
+        if n_click != 0:
+            choice = choiceRetrieve(pair)
+            if choice == 1:
+                choice = 0
+            else:
+                choice = 1
+            update_choice(pair,choice)
+        choice = choiceRetrieve(pair)
+        if choice == 0: return {'background-color': 'transparent'}
+        if choice == 1: return {'background-color': 'green'}
+    return updateChoice
 
 # Function to open or close STYLE or STUDIES menu
 def generate_open_close_menu_callback():
@@ -903,7 +931,7 @@ def generate_show_hide_graph_div_callback(pair):
 
     return show_graph_div_callback
 
-# Generate Buy/Sell and Chart Buttons for Left Panel
+# Generate login, bot and Chart Buttons for Left Panel
 def generate_contents_for_left_panel():
     def show_contents(n_clicks):
         if n_clicks is None:
@@ -929,23 +957,29 @@ def generate_login_order():
 
 # Login/Switch users Callback
 app.callback(
-    Output('login-msg','children'),[Input("Login-user","n_clicks"),State("user-login","value"),State("pass-login","value"),State("FX-Server","value")]
+    Output('login-msg','children'),
+    [Input("Login-user","n_clicks"),
+     State("user-login","value"),State("pass-login","value"),State("FX-Server","value")]
     )(generate_login_order())
 
 def update_name():
     def updateAccountName(n_clicks):
-        return html.P("ACCOUNT: " + str(mt5.account_info().login))
+        return html.P("ACCOUNT: " + str(accountInfo('login')))
     return updateAccountName
-app.callback(Output('login-summary','children'),Input("Login-user","n_clicks"))(update_name())
 
-# Callback for Buy/Sell and Chart Buttons for Left Panel
+app.callback(
+    Output('login-summary','children'),
+    Input("Login-user","n_clicks")
+    )(update_name())
+
+# Callback for login Button for Left Panel
 app.callback(
     [Output("login-contents", "className"), Output("login-summary", "className")],
     [Input("login-summary", "n_clicks")],
     )(generate_contents_for_left_panel())
 
 for pair in currencies:
-    # Callback for Buy/Sell and Chart Buttons for Left Panel
+    # Callback for Bot and Chart Buttons for Left Panel
     app.callback(
         [Output(pair + "contents", "className"), Output(pair + "summary", "className")],
         [Input(pair + "summary", "n_clicks")],
@@ -991,6 +1025,12 @@ for pair in currencies:
         [State(pair + "Button_chart", "n_clicks")],
     )(generate_close_graph_callback())
 
+    # updates the database of currency pair choices
+    app.callback(
+        Output(pair + "Bot","style"),
+        Input(pair + "Bot","n_clicks")
+    )(update_Choice_database(pair))
+
     # show or hide graph menu
     app.callback(
         Output(pair + "menu", "className"),
@@ -1033,6 +1073,7 @@ app.callback(
     Output("orders", "children"),
     Input("closable_orders", "value"),
 )
+# close order function
 def close_orders(ticket):
     if ticket != None:
         close_order(ticket)
@@ -1112,14 +1153,12 @@ def update_close_dropdown(n):
 # Callback to update Top Bar values
 @app.callback(Output("top_bar", "children"), [Input("interval", "n_intervals")])
 def update_top_bar(n):
-    balance="%.2F" % mt5.account_info().balance
-    equity=mt5.account_info().equity
-    margin=mt5.account_info().margin
-    free_margin="%.2F" % mt5.account_info().margin_free
-    margin_level="%" if margin == 0 else "%2.F" % ((equity / margin) * 100) + "%"
-    equity="%.2F" % mt5.account_info().equity
-    margin="%.2F" % mt5.account_info().margin
-    positions=mt5.positions_get()
+    balance="%.2F" % accountInfo('balance')
+    equity="%.2F" % accountInfo('equity')
+    margin="%.2F" % accountInfo('margin')
+    free_margin="%.2F" % accountInfo('margin_free')
+    margin_level="%.2F" % accountInfo('margin_level') + "%"
+    positions=getActivePos()
     open_pl="%.2F" %sum(pd.DataFrame(list(positions),columns=positions[0]._asdict().keys()).profit) if len(positions) > 0 else 0
     return get_top_bar(balance, equity, margin, free_margin, margin_level, open_pl)
 
@@ -1131,8 +1170,5 @@ def update_time(n):
     return datetimeNow.strftime("%b %d %Y %H:%M:%S")
 
 if __name__ == '__main__':
-    tradingBotScript_thread = threading.Thread(target=run_script, args=("ForexTradingBot_Backend.py",))
-    tradingBotScript_thread.start()
     # app.run(host="0.0.0.0",port=8000,debug=True)
-    serve(app, host='127.0.0.1', port=8000, url_prefix='/my-app')
-    tradingBotScript_thread.join()
+    serve(app.server, host='0.0.0.0', port=8000,threads=10)
