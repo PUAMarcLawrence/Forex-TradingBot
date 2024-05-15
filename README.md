@@ -100,16 +100,16 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [*] Front End GUI
-    - [ ] Switch/User Option
-    - [ ] Server Time(OctaFX)
-    - [ ] Currency Pair Bid/Ask Display
-    - [ ] Account Details/Status Display
-    - [ ] Currency Pair Chart
-    - [ ] Order List (Active/Closed)
+- [X] Front End GUI
+    - [X] Switch/User Option
+    - [X] Server Time(OctaFX)
+    - [X] Currency Pair Bid/Ask Display
+    - [X] Account Details/Status Display
+    - [X] Currency Pair Chart
+    - [X] Order List (Active/Closed)
 - [ ] Back End
-    - [ ] Market Schedule
-    - [ ] AI Logic
+    - [X] Market Schedule
+    - [X] AI Logic
 
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
