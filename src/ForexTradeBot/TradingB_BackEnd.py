@@ -1,9 +1,7 @@
 #import
-import pandas as pd
 from datetime import datetime, timedelta
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from modules.mt5_functions import get_positions,checkActivePos,close_order,buy_order,sell_order
+from modules.mt5_functions import checkActivePos,buy_order,sell_order
 from modules.sqlite_functions import getCurrencies,choiceRetrieve
 # from modules.findTime import *
 from modules.TrendML import trends
