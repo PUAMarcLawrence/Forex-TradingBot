@@ -1,9 +1,7 @@
 #import
 from datetime import datetime, timedelta
-from sklearn.model_selection import train_test_split
 from modules.mt5_functions import checkActivePos,buy_order,sell_order
 from modules.sqlite_functions import getCurrencies,choiceRetrieve
-# from modules.findTime import *
 from modules.TrendML import trends
 
 print_status = {
@@ -31,29 +29,11 @@ def checkMarket_status():
             print('Market is OPEN....')
         return True # ("Markets are Open")
 
-# # Momentum trading strategy
-# def momentum_trading(symbol):
-#     # Fetch historical data
-#     data = pd.DataFrame(get_positions(symbol,'M15',100))
-#     # Calculate momentum indicator (e.g., simple moving average)
-#     data['SMA_short'] = data['close'].rolling(window=10).mean()
-#     data['SMA_long'] = data['close'].rolling(window=30).mean()
-#     # Check for buy/sell signals
-#     if data['SMA_short'].iloc[-1] > data['SMA_long'].iloc[-1]:
-#         # print("Buy signal detected!")
-#         return 1
-#         # Implement your buy order here
-#     elif data['SMA_short'].iloc[-1] < data['SMA_long'].iloc[-1]:
-#         # print("Sell signal detected!")
-#         return 0
-#         # Implement your sell order here
-#     return
-
 def main():
     print('Bot Online')
     while True:
         # server date time
-        current_time = datetime.now() - timedelta(hours=6)
+        # current_time = datetime.now() - timedelta(hours=6)
         if checkMarket_status() == True:
             for symbol in currencies:
                 choice = choiceRetrieve(symbol)
@@ -63,7 +43,6 @@ def main():
                     for symbol in currencies:
                         if not checkActivePos(symbol):
                             trendSym = trend[currencies.index(symbol)]
-                            # momentum = momentum_trading(symbol)
                             if trendSym == ['Up','Up','Up'] or trendSym == ['Up','Up','Down']: # and momentum == 1:
                                 print("Buying")
                                 buy_order(symbol,0.01)
