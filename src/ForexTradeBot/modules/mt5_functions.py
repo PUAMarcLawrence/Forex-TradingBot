@@ -115,7 +115,6 @@ def sell_order(symbol,volume):
     refreshInitialization()
     sell_price = mt5.symbol_info_tick(symbol).bid
     point = mt5.symbol_info(symbol).point
-    print(point)
     sell_sl = sell_price + 50 * point
     sell_tp = sell_price - 150 * point
     # create_order(symbol,volume,mt5.ORDER_TYPE_BUY,sell_price,'Bot Selling')
