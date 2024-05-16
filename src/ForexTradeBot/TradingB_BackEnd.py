@@ -31,6 +31,7 @@ def checkMarket_status():
 
 def main():
     print('Bot Online')
+    oldTrend = []
     while True:
         # server date time
         # current_time = datetime.now() - timedelta(hours=6)
@@ -39,7 +40,9 @@ def main():
                 choice = choiceRetrieve(symbol)
                 if choice == 1:
                     trend = trends()
-                    print(trend)
+                    if trend != oldTrend:
+                        print(trend)
+                        oldTrend = trend
                     for symbol in currencies:
                         if not checkActivePos(symbol):
                             trendSym = trend[currencies.index(symbol)]
