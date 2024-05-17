@@ -46,10 +46,10 @@ def main():
                     for symbol in currencies:
                         if not checkActivePos(symbol):
                             trendSym = trend[currencies.index(symbol)]
-                            if trendSym == ['Up','Up','Up'] or trendSym == ['Up','Up','Down']: # and momentum == 1:
+                            if trendSym == ['Up','Up','Up'] or trendSym == ['Up','Up','Down']: 
                                 print("Buying")
                                 buy_order(symbol,0.01)
-                            elif trendSym == ['Down','Down','Down'] or trendSym == ['Down','Down','Up']: # and momentum == 0:
+                            elif trendSym == ['Down','Down','Down'] or trendSym == ['Down','Down','Up']: 
                                 print('Selling')
                                 sell_order(symbol,0.01)
                             
