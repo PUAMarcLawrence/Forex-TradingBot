@@ -1,4 +1,4 @@
-.database/login.db
+.database
 .venv
 **/__pycache__
 *.egg-info
