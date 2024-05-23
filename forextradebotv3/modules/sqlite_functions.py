@@ -1,5 +1,5 @@
 import sqlite3
-databasename = 'database\login.db'
+databasename = '.database\login.db'
 
 def database_initialize(list):
     # Connect to database
