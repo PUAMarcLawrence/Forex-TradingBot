@@ -11,30 +11,6 @@ from modules.mt5_functions import *
 # Currency pairs
 currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
-#Bot Start UP
-database_initialize(currencies)
-if login_retrieve() != None:
-    initializeMT5()
-while login_retrieve() == None:
-    print("No Account in Database")
-    userData = input("Enter user ID: ")
-    userPass = input("Password: ")
-    print("Select which server: \n [1]OctaFX-Demo \n [2]OctaFX-Real2 \n [3]OctaFX-Real")
-    while True:
-        serverSelect = input("Enter number: ")
-        if serverSelect == '1':
-            serverData = 'OctaFX-Demo'
-            break
-        elif serverSelect == '2':
-            serverData = 'OctaFX-Real2'
-            break
-        elif serverSelect == '3':
-            serverData = 'OctaFX-Real'
-            break
-        else:
-            print("INVALID INPUT")
-    if newUser(userData,userPass,serverData): 
-        break
 
 # initialize app
 app = Dash(__name__,meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=0.5"}], external_stylesheets=["src\assets\style.css"]) # external_stylesheets=[dbc.themes.SPACELAB,dbc.icons.BOOTSTRAP])
