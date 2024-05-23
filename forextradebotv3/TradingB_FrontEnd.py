@@ -16,7 +16,7 @@ database_initialize(currencies)
 if login_retrieve() != None:
     initializeMT5()
 while login_retrieve() == None:
-    print("No Account in Database:")
+    print("No Account in Database")
     userData = input("Enter user ID: ")
     userPass = input("Password: ")
     print("Select which server: \n [1]OctaFX-Demo \n [2]OctaFX-Real2 \n [3]OctaFX-Real")
