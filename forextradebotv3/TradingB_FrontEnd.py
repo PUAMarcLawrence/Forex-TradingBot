@@ -661,7 +661,7 @@ def load_orders():
             'Status': 'open'
         }
         orders.append(order)
-    dfOrders = getHistoricPos(datetime.now() - timedelta(days=30),datetime.now())
+    dfOrders = getHistoricPos(datetime.now() - timedelta(days=7),datetime.now())
     for order in dfOrders:
         if order[13] != 0:
             if order[4] > 0:
