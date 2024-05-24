@@ -611,7 +611,7 @@ def chart_div(pair):
                                         options=[
                                             {"label": "H1", "value": "H1"},
                                             {"label": "H4", "value": "H4"},
-                                            {"label": "D4", "value": "D4"},
+                                            {"label": "D1", "value": "D1"},
                                         ],
                                         value="H1",
                                         clearable=False,
