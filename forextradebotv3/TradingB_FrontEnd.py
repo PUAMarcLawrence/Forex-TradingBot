@@ -2,12 +2,14 @@
 import math
 import pandas as pd
 import plotly.graph_objects as go
+import time
 from dash import Dash,html,dcc,Output,Input,State
 from datetime import datetime, timedelta
 from plotly import subplots
 from waitress import serve
 from modules.sqlite_functions import database_initialize, login_retrieve, choiceRetrieve, update_choice
 from modules.mt5_functions import *
+
 # Currency pairs
 currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
 
@@ -16,6 +18,7 @@ database_initialize(currencies)
 if login_retrieve() != None:
     initializeMT5()
 while login_retrieve() == None:
+    time.sleep(2)
     print("No Account in Database")
     userData = input("Enter user ID: ")
     userPass = input("Password: ")
@@ -33,8 +36,11 @@ while login_retrieve() == None:
             break
         else:
             print("INVALID INPUT")
-    if newUser(userData,userPass,serverData): 
-        break
+    try:
+        if newUser(userData,userPass,serverData) == True: 
+            break
+    except:
+        print('Failed, Try Again.')
 
 # initialize app
 app = Dash(__name__,meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=0.5"}], external_stylesheets=["src\assets\style.css"]) # external_stylesheets=[dbc.themes.SPACELAB,dbc.icons.BOOTSTRAP])

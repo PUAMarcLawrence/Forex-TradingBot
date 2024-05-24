@@ -1,5 +1,5 @@
 import sqlite3
-databasename = 'forextradebotv3\.database\login.db'
+databasename = 'forextradebotv3\database\login.db'
 
 def database_initialize(list):
     # Connect to database
