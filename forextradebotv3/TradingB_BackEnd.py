@@ -34,7 +34,7 @@ def main():
     oldTrend = []
     while True:
         # server date time
-        # current_time = datetime.now() - timedelta(hours=6)
+        current_time = datetime.now() - timedelta(hours=6)
         if checkMarket_status() == True:
             for symbol in currencies:
                 choice = choiceRetrieve(symbol)

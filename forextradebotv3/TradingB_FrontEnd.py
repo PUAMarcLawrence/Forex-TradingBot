@@ -11,7 +11,7 @@ from modules.sqlite_functions import database_initialize, login_retrieve, choice
 from modules.mt5_functions import *
 
 # Currency pairs
-currencies = ["EURUSD", "GBPUSD", "AUDUSD","USDCHF", "USDJPY"]
+currencies = ["EURUSD", "GBPUSD", "USDJPY","USDCHF", "AUDUSD","NZDUSD","USDCAD"]
 
 #Bot Start UP
 database_initialize(currencies)
