@@ -18,7 +18,7 @@ database_initialize(currencies)
 if login_retrieve() != None:
     initializeMT5()
 while login_retrieve() == None:
-    time.sleep(2)
+    time.sleep(2.5)
     print("No Account in Database")
     userData = input("Enter user ID: ")
     userPass = input("Password: ")

@@ -29,7 +29,7 @@ def database_initialize(list):
     cur = database.cursor()
     cur.execute("SELECT * FROM currencies")
     if cur.fetchone() == None:
-        cur.execute("INSERT INTO currencies VALUES (0,0,0,0,0)")
+        cur.execute("INSERT INTO currencies VALUES (0,0,0,0,0,0,0)")
         # Commit our command
         database.commit()
     # close out connection
