@@ -55,15 +55,14 @@ def main():
                     if trend != oldTrend:
                         print(trend)
                         oldTrend = trend
-                    for symbol in currencies:
-                        if not checkActivePos(symbol):
-                            trendSym = trend[currencies.index(symbol)]
-                            if trendSym == ['Up','Up','Up'] or trendSym == ['Up','Up','Down']: 
-                                print("Buying")
-                                buy_order(symbol,0.01)
-                            elif trendSym == ['Down','Down','Down'] or trendSym == ['Down','Down','Up']: 
-                                print('Selling')
-                                sell_order(symbol,0.01)
+                    if not checkActivePos(symbol):
+                        trendSym = trend[currencies.index(symbol)]
+                        if trendSym == ['Up','Up','Up'] or trendSym == ['Up','Up','Down']: 
+                            print("Buying")
+                            buy_order(symbol,0.01)
+                        elif trendSym == ['Down','Down','Down'] or trendSym == ['Down','Down','Up']: 
+                            print('Selling')
+                            sell_order(symbol,0.01)
                             
 
 if __name__ == '__main__':
