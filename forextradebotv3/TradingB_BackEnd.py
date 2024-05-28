@@ -36,7 +36,7 @@ def session(symbol,current_time):
     if current_time >= time(10,0) and current_time <= time(19,0):
         if "EUR" in symbol:
             return True
-    if not current_time.time() <= time(15,0) and current_time.time() >= time(0,0):
+    if not current_time <= time(15,0) and current_time >= time(0,0):
         if "JPY" in symbol:
             return True
     return False
