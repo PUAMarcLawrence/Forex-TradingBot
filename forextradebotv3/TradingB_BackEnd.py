@@ -30,14 +30,14 @@ def checkMarket_status():
         return True # ("Markets are Open")
 
 def session(symbol,current_time):
-    if current_time >= time(2,0) and current_time <= time(12,0):
-        if "JPY" in symbol:
+    if "JPY" in symbol:
+        if current_time >= time(2,0) and current_time <= time(12,0):
             return True
-    if current_time >= time(10,0) and current_time <= time(19,0):
-        if "EUR" in symbol:
+    if "EUR" in symbol:
+        if current_time >= time(10,0) and current_time <= time(19,0):
             return True
-    if not current_time <= time(15,0) and current_time >= time(0,0):
-        if "JPY" in symbol:
+    if "USD" in symbol:
+        if not current_time <= time(15,0) and current_time >= time(0,0):
             return True
     return False
 
