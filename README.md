@@ -109,8 +109,9 @@ _For more examples, please refer to the [Documentation](https://example.com)_
     - [X] Order List (Active/Closed)
 - [X] Back End
     - [X] Market Schedule
+    - [X] Major Trading Session Schedule
     - [X] Machine Learning Algorithm 
-
+    - [X] Trend-following Strategy 
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
